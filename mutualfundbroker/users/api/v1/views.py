@@ -2,14 +2,18 @@ from datetime import datetime
 
 from rest_framework import status
 from django.contrib.auth import authenticate
-from rest_framework.generics import APIView, GenericAPIView
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.serializers import ValidationError
 from rest_framework import permissions, authentication
+from rest_framework.generics import GenericAPIView
 from django.contrib.auth.password_validation import validate_password
 
-from users.models import Appuser, UserInvestDetails
 from users.api.v1.mixins import UtilityMixin
+from mutual_fund.models import MutualFund
+from users.models import Appuser, UserInvestDetails
+from users.api.v1.serializers import UserInvestmentsModelSerializer
 
 
 class AuthView(GenericAPIView, UtilityMixin):
@@ -115,55 +119,104 @@ class UserInvestmentDetailsAPIView(APIView, UtilityMixin):
     authentication_classes = [authentication.TokenAuthentication]
 
     def get(self, request, *args, **kwargs):
-        pass
+        investments = UserInvestDetails.objects.filter(user=request.user)
+        serializer = UserInvestmentsModelSerializer(investments, many=True)
+        return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
         data = request.data
         partial_data_error_message = ""
 
-        if not "schema_code" in data:
-            partial_data_error_message += "schema_code is required, "
+        if not "scheme_code" in data:
+            partial_data_error_message += "scheme_code is required, "
 
         if not "invested_date" in data:
             partial_data_error_message += "invested_date is required, "
 
         if not "units_owned" in data:
-            partial_data_error_message += "units_owned is required"
+            partial_data_error_message += "units_owned is required, "
+
+        if not "invested_amount" in data:
+            partial_data_error_message += "invested_amount is required"
 
         if partial_data_error_message:
             return self.send_response(
                 {"message": partial_data_error_message, "is_success": False},
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
-
         invested_date = None
         try:
-            invested_date = datetime.strptime(data.get("invested_date"), "%d-%m-%Y")
+            invested_date = datetime.strptime(data.get("invested_date"), "%Y-%m-%d")
         except Exception as e:
             return self.send_response(
                 {
-                    "message": "invested_date format error (required format is dd/mm/YYYY)",
+                    "message": "invested_date format error (required format is YYYY-MM-DD)",
                     "is_success": False,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
-        units_owned = 0
-        try:
-            units_owned = int(data.get("units_owned"))
-        except Exception as e:
+        mutual_fund_obj = MutualFund.objects.filter(
+            scheme_code__iexact=data.get("scheme_code", "")
+        ).last()
+
+        if not mutual_fund_obj:
             return self.send_response(
                 {
-                    "message": "incorrect value in units_owned",
+                    "message": "Schema Code is not found",
                     "is_success": False,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        curr_user_investment = UserInvestDetails.objects.filter(
+            user=request.user, mutual_fund=mutual_fund_obj
+        ).last()
+
+        if curr_user_investment:
+            curr_user_investment.units_owned = (
+                curr_user_investment.units_owned + data.get("units_owned")
+            )
+            curr_user_investment.amount_invested = (
+                curr_user_investment.amount_invested + data.get("invested_amount")
+            )
+            curr_user_investment.investment_date = invested_date
+            curr_user_investment.save()
+        else:
+            UserInvestDetails.objects.create(
+                user=request.user,
+                mutual_fund=mutual_fund_obj,
+                units_owned=data.get("units_owned", 0),
+                investment_date=invested_date,
+                amount_invested=data.get("invested_amount", 0),
+            )
+        return Response(
+            {"message": "successfully created", "is_success": True},
+            status=status.HTTP_201_CREATED,
+        )
+
+    def put(self, request, *args, **kwargs):
+        pass
+
+    def delete(self, request, *args, **kwargs):
+        investment_record_id = request.GET.get("investment")
+        investment = UserInvestDetails.objects.filter(
+            user=request.user, id=investment_record_id
+        ).last()
+
+        if investment:
+            investment.delete()
+        else:
+            return Response(
+                {
+                    "message": f"Investment ({investment_record_id}) is not found",
+                    "is_success": False,
+                },
+                status=status.HTTP_204_NO_CONTENT,
             )
 
-        UserInvestDetails.objects.create(
-            user=request.user,
-            mutual_fund=data.get("schema_code"),
-            units_owned=units_owned,
-            investment_date=invested_date,
+        return Response(
+            {
+                "message": f"Investment ({investment_record_id}) is deleted successfully",
+                "is_success": True,
+            },
+            status=status.HTTP_200_OK,
         )
-        
-        
