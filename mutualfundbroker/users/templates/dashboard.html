@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            background-color:rgb(57, 9, 108);
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h3 {
+            color: rgb(57, 9, 108);
+            margin-bottom: 10px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .left-section, .right-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .left-section {
+            flex: 3;
+        }
+
+        .right-section {
+            flex: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+        }
+
+        th {
+            background-color: #f8f8f8;
+        }
+
+        button {
+            background-color:rgb(57, 9, 108);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color:rgb(113, 19, 139);
+        }
+
+        button.delete {
+            background-color: #ff4d4d;
+        }
+
+        button.delete:hover {
+            background-color: #e63939;
+        }
+
+        form label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+
+        form input, form select, form button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .summary {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .summary div {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background: rgb(57, 9, 108);
+            color: white;
+            margin: 5px;
+            border-radius: 8px;
+            font-size: 1.2em;
+        }
+        .logout-container {
+            display: flex;
+            justify-content: flex-end;
+            margin: 10px 20px;
+        }
+        
+        #logoutButton {
+            background-color:rgb(0, 0, 0);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        #logoutButton:hover {
+            background-color: #e63939;
+        }
+
+        .modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        width: 40vw;
+        }
+    
+        .modal-content {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        }
+    
+        .close-button {
+        align-self: flex-end;
+        cursor: pointer;
+        font-size: 20px;
+        }
+    
+        .modal[style*="display: none;"] {
+        display: none !important;
+        }
+    
+        .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <h1>My Portfolio</h1>
+    <div class="logout-container">
+        <button id="logoutButton">Sign Out</button>
+    </div>
+    
+    <!-- Summary Section -->
+    <div class="left-section">
+        <h3>Overall Details</h3>
+        <div class="summary">
+            <div>Total Invested: ₹ <span id="total-invested">0</span></div>
+            <div>Current Value: ₹ <span id="current-value">0</span></div>
+            <div>Total Returns: ₹ <span id="total-returns">0</span></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Investment Records -->
+        <div class="left-section">
+            <h3>Your Investments</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Scheme Name</th>
+                        <th>Units Owned</th>
+                        <th>Invested Amount</th>
+                        <th>Current Value</th>
+                        <th>NAV</th>
+                        <th>Latest Investment Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="investment-records">
+                    <!-- Records will be appended dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Add Investment Form -->
+        <div class="right-section">
+            <h3>Add Investment</h3>
+            <form id="investmentForm">
+                <label for="family">Mutual Fund Family:</label>
+                <select id="family" name="family" class="select2">
+                    <option value="">Select Family</option>
+                </select>
+
+                <label for="scheme">Mutual Fund Scheme:</label>
+                <select id="scheme" name="scheme" class="select2"></select>
+
+                <label for="units_owned">Units Owned:</label>
+                <input type="number" id="units_owned" name="units_owned" placeholder="Enter number of units">
+
+                <label for="invested_amount">Invested Amount:</label>
+                <input type="number" id="invested_amount" name="invested_amount" placeholder="Enter amount">
+
+                <label for="invested_date">Invested Date:</label>
+                <input type="date" id="invested_date" name="invested_date">
+
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+
+        <!-- Edit Investment Modal -->
+        <div id="editModal" class="modal" style="display: none;">
+            <div class="modal-content">
+              <span class="close-button" id="cancelEditInvestment">×</span>
+              <h3>Edit Investment</h3>
+              <form id="editInvestmentForm">
+                <label for="edit_units_owned">Units Owned: </label>
+                <input type="number" id="edit_units_owned" name="units_owned" required />
+                <br />
+          
+                <label for="edit_invested_amount">Invested Amount: </label>
+                <input type="number" id="edit_invested_amount" name="invested_amount" required />
+                <br />
+          
+                <label for="edit_invested_date">Invested Date: </label>
+                <input type="date" id="edit_invested_date" name="invested_date" required />
+                <br />
+          
+                <button type="submit">Update</button>
+              </form>
+            </div>
+          </div>
+
+    </div>
+
+    <script>
+        function getAuthToken() {
+            return localStorage.getItem("authToken");
+        }
+        
+        const API_BASE = "http://localhost:8000";
+
+        $(document).ready(function () {
+            $('.select2').select2();
+
+            // Load mutual fund families
+            function loadFamilies() {
+                $.get({
+                    url: `${API_BASE}/mutualfund/api/v1/fund-families/`, 
+                    headers: {
+                        Authorization: `Token ${getAuthToken()}`
+                    },
+                    success: function (response) {
+                    response.mf_houses.forEach(fundFamily => {
+                        $('#family').append(`<option value="${fundFamily}">${fundFamily}</option>`);
+                    });
+                }});
+            }
+
+            // Load schemes based on selected family
+            $('#family').change(function () {
+                const fundFamily = $(this).val();
+                $('#scheme').empty();
+                if (fundFamily) {
+                    $.get({
+                        url: `${API_BASE}/mutualfund/api/v1/fund-schemes/?fund_family=${fundFamily}`,
+                        headers:  {
+                            Authorization: `Token ${getAuthToken()}`
+                        },
+                        success: function (response) {
+                            $('#scheme').append('<option value="">Select Scheme</option>');
+                            response.schemes.forEach(scheme => {
+                                $('#scheme').append(`<option value="${scheme.scheme_code}" data-nav="${scheme.net_asset_value}">${scheme.scheme_name}</option>`);
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Load investments
+            function loadInvestments() {
+                $.get({
+                    url: `${API_BASE}/users/api/v1/investments/`,
+                    headers: {
+                        Authorization: `Token ${getAuthToken()}`
+                    },
+                    success: function (response) {
+                        const tbody = $('#investment-records');
+                        tbody.empty();
+                        let totalInvested = 0, totalCurrentValue = 0;
+    
+                        response.investments.forEach(investment => {
+                            const { id, scheme_name, units_owned, amount_invested, investment_date, current_value, nav } = investment;
+                            totalInvested += amount_invested;
+                            totalCurrentValue += current_value;
+                            tbody.append(`
+                                <tr>
+                                    <td>${scheme_name}</td>
+                                    <td>${units_owned}</td>
+                                    <td>₹ ${amount_invested}</td>
+                                    <td>₹ ${current_value}</td>
+                                    <td>₹ ${nav}</td>
+                                    <td>${investment_date}</td>
+                                    <td>
+                                        <button onclick='openEditModal(${JSON.stringify(investment)})' style="margin:2px">Edit</button>
+                                        <button class="delete" onclick="deleteInvestment(${id})">Delete</button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+    
+                        $('#total-invested').text(totalInvested);
+                        $('#current-value').text(totalCurrentValue);
+                        $('#total-returns').text(totalCurrentValue - totalInvested);
+                    }
+                });
+            }
+
+            // Handle form submission
+            $('#investmentForm').submit(function (e) {
+                e.preventDefault();
+                const payload = {
+                    scheme_code: $('#scheme').val(),
+                    units_owned: parseInt($('#units_owned').val()),
+                    invested_amount: parseInt($('#invested_amount').val()),
+                    invested_date: $('#invested_date').val(),
+                };
+
+                $.ajax({
+                    url: `${API_BASE}/users/api/v1/investments/`,
+                    type: "POST",
+                    headers: {
+                        Authorization: `Token ${getAuthToken()}`
+                    },
+                    data: JSON.stringify(payload),
+                    contentType: "application/json",
+                    success: function () {
+                        alert("Investment added successfully!");
+                        loadInvestments();
+                    },
+                    error: function () {
+                        alert("Failed to add investment!");
+                    }
+                });
+            });
+
+            // Delete an investment
+            window.deleteInvestment = function (investmentId) {
+                if (confirm("Are you sure you want to delete this investment?")) {
+                    $.ajax({
+                        url: `${API_BASE}/users/api/v1/investments/?investment=${investmentId}`,
+                        type: "DELETE",
+                        headers: {
+                            Authorization: `Token ${getAuthToken()}`
+                        },
+                        success: function () {
+                            alert("Investment deleted successfully!");
+                            loadInvestments();
+                        },
+                        error: function () {
+                            alert("Failed to delete investment!");
+                        }
+                    });
+                }
+            };
+
+        // Open the Edit Modal with Prefilled Values
+        window.openEditModal = function (investment) {
+            $("#edit_units_owned").val(investment.units_owned);
+            $("#edit_invested_amount").val(investment.amount_invested);
+            $("#edit_invested_date").val(investment.investment_date);
+
+            $("#editModal").show();
+
+            $('#editInvestmentForm').submit(function (e) {
+                e.preventDefault();
+                updateInvestment(investment.id);
+            })
+        };
+
+        function updateInvestment(investmentId) {
+            const updatedData = {
+                units_owned: $("#edit_units_owned").val(),
+                invested_amount: $("#edit_invested_amount").val(),
+                invested_date: $("#edit_invested_date").val(),
+            };
+
+            $.ajax({
+                url: `${API_BASE}/users/api/v1/investments/?investment=${investmentId}`,
+                type: "PUT",
+                headers: {
+                    Authorization: `Token ${getAuthToken()}`,
+                    "Content-Type": "application/json",
+                },
+                data: JSON.stringify(updatedData),
+                success: function () {
+                    loadInvestments();
+                    $("#editModal").hide();
+                    
+                },
+                error: function () {
+                    alert("Failed to update investment!");
+                },
+            });
+        }
+
+
+            // Initialize data
+            loadFamilies();
+            loadInvestments();
+        });
+        document.getElementById('logoutButton').addEventListener('click', function () {
+            if (confirm("Are you sure you want to logout?")) {
+                localStorage.removeItem("authToken"); 
+                window.location.href = "/users/auth"; 
+            }
+        });
+
+        $("#cancelEditInvestment").on("click", function () {
+            $("#editModal").hide();
+        });
+    </script>
+</body>
+</html>
