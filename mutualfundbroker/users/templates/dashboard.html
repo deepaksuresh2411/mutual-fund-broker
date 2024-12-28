@@ -184,7 +184,7 @@
     </style>
 </head>
 <body>
-    <h1>My </h1>
+    <h1>My Portfolio</h1>
     <div class="logout-container">
         <button id="logoutButton">Sign Out</button>
     </div>
@@ -322,12 +322,12 @@
                     headers: {
                         Authorization: `Token ${getAuthToken()}`
                     },
-                    success: function (investments) {
+                    success: function (response) {
                         const tbody = $('#investment-records');
                         tbody.empty();
                         let totalInvested = 0, totalCurrentValue = 0;
     
-                        investments.forEach(investment => {
+                        response.investments.forEach(investment => {
                             const { id, scheme_name, units_owned, amount_invested, investment_date, current_value, nav } = investment;
                             totalInvested += amount_invested;
                             totalCurrentValue += current_value;

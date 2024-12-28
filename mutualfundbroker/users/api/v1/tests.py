@@ -11,9 +11,9 @@ def test_user_signup():
     """
     # Test user data
     user_data = {
-        "first_name": "Test",
-        "last_name": "User",
-        "email": "test_user24@y.com",
+        "first_name": "Zee",
+        "last_name": "Zee",
+        "email": "zeezee@y.com",
         "password1": "TestPass@123",
     }
 
@@ -51,7 +51,7 @@ def test_user_signin():
     """
     # Test user credentials
     credentials = {
-        "email": "test_user24@y.com",
+        "email": "zeezee@y.com",
         "password": "TestPass@123",
     }
 
@@ -70,7 +70,7 @@ def test_user_signin():
 
     # Test invalid credentials
     invalid_credentials = {
-        "email": "testuser@example.com",
+        "email": "zeezee@y.com",
         "password": "WrongPassword",
     }
     response = requests.post(SIGNIN_ENDPOINT, json=invalid_credentials)
@@ -91,7 +91,7 @@ def test_user_signout():
     Test to verify the user signout API endpoint.
     """
     # First signin to get auth token
-    credentials = {"email": "test_user24@y.com", "password": "TestPass@123"}
+    credentials = {"email": "zeezee@y.com", "password": "TestPass@123"}
     signin_response = requests.post(SIGNIN_ENDPOINT, json=credentials)
     assert signin_response.status_code == 200
     token = signin_response.json()["token"]

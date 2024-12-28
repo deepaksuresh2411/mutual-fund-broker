@@ -121,7 +121,7 @@ class UserInvestmentDetailsAPIView(APIView, UtilityMixin):
     def get(self, request, *args, **kwargs):
         investments = UserInvestDetails.objects.filter(user=request.user)
         serializer = UserInvestmentsModelSerializer(investments, many=True)
-        return Response(serializer.data)
+        return Response({"investments": serializer.data, "is_success": True})
 
     def post(self, request, *args, **kwargs):
         data = request.data
@@ -162,7 +162,7 @@ class UserInvestmentDetailsAPIView(APIView, UtilityMixin):
         if not mutual_fund_obj:
             return self.send_response(
                 {
-                    "message": "Schema Code is not found",
+                    "message": "mutual fund scheme with this schema code is not found",
                     "is_success": False,
                 },
                 status_code=status.HTTP_400_BAD_REQUEST,

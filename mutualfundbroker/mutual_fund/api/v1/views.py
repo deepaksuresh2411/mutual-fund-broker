@@ -24,11 +24,22 @@ class MutualFundAPIView(GenericAPIView):
         fund_family = request.GET.get("fund_family")
 
         if fund_family:
-            schemes = MutualFund.objects.filter(fund_family__name=fund_family).values(
+            schemes = MutualFund.objects.filter(fund_family__name=fund_family)
+            if not schemes.exists():
+                return Response(
+                    {
+                        "message": "Fund Family not exists",
+                        "schemes": [],
+                        "is_success": False,
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            schemes_response = schemes.values(
                 "scheme_name", "scheme_code", "net_asset_value"
             )
             return Response(
-                {"schemes": schemes, "is_success": True}, status=status.HTTP_200_OK
+                {"schemes": schemes_response, "is_success": True},
+                status=status.HTTP_200_OK,
             )
         else:
             return Response(
