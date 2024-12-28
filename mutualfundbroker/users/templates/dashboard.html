@@ -142,11 +142,49 @@
         #logoutButton:hover {
             background-color: #e63939;
         }
-        
+
+        .modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        width: 40vw;
+        }
+    
+        .modal-content {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        }
+    
+        .close-button {
+        align-self: flex-end;
+        cursor: pointer;
+        font-size: 20px;
+        }
+    
+        .modal[style*="display: none;"] {
+        display: none !important;
+        }
+    
+        .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        }
     </style>
 </head>
 <body>
-    <h1>My Portfolio</h1>
+    <h1>My </h1>
     <div class="logout-container">
         <button id="logoutButton">Sign Out</button>
     </div>
@@ -155,9 +193,9 @@
     <div class="left-section">
         <h3>Overall Details</h3>
         <div class="summary">
-            <div>Total Invested: ₹<span id="total-invested">0</span></div>
-            <div>Current Value: ₹<span id="current-value">0</span></div>
-            <div>Total Returns: ₹<span id="total-returns">0</span></div>
+            <div>Total Invested: ₹ <span id="total-invested">0</span></div>
+            <div>Current Value: ₹ <span id="current-value">0</span></div>
+            <div>Total Returns: ₹ <span id="total-returns">0</span></div>
         </div>
     </div>
 
@@ -173,6 +211,7 @@
                         <th>Invested Amount</th>
                         <th>Current Value</th>
                         <th>NAV</th>
+                        <th>Latest Investment Date</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -182,9 +221,9 @@
             </table>
         </div>
 
-        <!-- Add/Update Investment Form -->
+        <!-- Add Investment Form -->
         <div class="right-section">
-            <h3>Add/Update Investment</h3>
+            <h3>Add Investment</h3>
             <form id="investmentForm">
                 <label for="family">Mutual Fund Family:</label>
                 <select id="family" name="family" class="select2">
@@ -206,6 +245,30 @@
                 <button type="submit">Submit</button>
             </form>
         </div>
+
+        <!-- Edit Investment Modal -->
+        <div id="editModal" class="modal" style="display: none;">
+            <div class="modal-content">
+              <span class="close-button" id="cancelEditInvestment">×</span>
+              <h3>Edit Investment</h3>
+              <form id="editInvestmentForm">
+                <label for="edit_units_owned">Units Owned: </label>
+                <input type="number" id="edit_units_owned" name="units_owned" required />
+                <br />
+          
+                <label for="edit_invested_amount">Invested Amount: </label>
+                <input type="number" id="edit_invested_amount" name="invested_amount" required />
+                <br />
+          
+                <label for="edit_invested_date">Invested Date: </label>
+                <input type="date" id="edit_invested_date" name="invested_date" required />
+                <br />
+          
+                <button type="submit">Update</button>
+              </form>
+            </div>
+          </div>
+
     </div>
 
     <script>
@@ -268,16 +331,16 @@
                             const { id, scheme_name, units_owned, amount_invested, investment_date, current_value, nav } = investment;
                             totalInvested += amount_invested;
                             totalCurrentValue += current_value;
-    
                             tbody.append(`
                                 <tr>
                                     <td>${scheme_name}</td>
                                     <td>${units_owned}</td>
-                                    <td>₹${amount_invested}</td>
-                                    <td>₹${current_value}</td>
-                                    <td>₹${nav}</td>
+                                    <td>₹ ${amount_invested}</td>
+                                    <td>₹ ${current_value}</td>
+                                    <td>₹ ${nav}</td>
+                                    <td>${investment_date}</td>
                                     <td>
-                                        <button onclick="editInvestment(${id})">Edit</button>
+                                        <button onclick='openEditModal(${JSON.stringify(investment)})' style="margin:2px">Edit</button>
                                         <button class="delete" onclick="deleteInvestment(${id})">Delete</button>
                                     </td>
                                 </tr>
@@ -339,17 +402,61 @@
                 }
             };
 
+        // Open the Edit Modal with Prefilled Values
+        window.openEditModal = function (investment) {
+            $("#edit_units_owned").val(investment.units_owned);
+            $("#edit_invested_amount").val(investment.amount_invested);
+            $("#edit_invested_date").val(investment.investment_date);
+
+            $("#editModal").show();
+
+            $('#editInvestmentForm').submit(function (e) {
+                e.preventDefault();
+                updateInvestment(investment.id);
+            })
+        };
+
+        function updateInvestment(investmentId) {
+            const updatedData = {
+                units_owned: $("#edit_units_owned").val(),
+                invested_amount: $("#edit_invested_amount").val(),
+                invested_date: $("#edit_invested_date").val(),
+            };
+
+            $.ajax({
+                url: `${API_BASE}/users/api/v1/investments/?investment=${investmentId}`,
+                type: "PUT",
+                headers: {
+                    Authorization: `Token ${getAuthToken()}`,
+                    "Content-Type": "application/json",
+                },
+                data: JSON.stringify(updatedData),
+                success: function () {
+                    loadInvestments();
+                    $("#editModal").hide();
+                    
+                },
+                error: function () {
+                    alert("Failed to update investment!");
+                },
+            });
+        }
+
+
             // Initialize data
             loadFamilies();
             loadInvestments();
         });
         document.getElementById('logoutButton').addEventListener('click', function () {
             if (confirm("Are you sure you want to logout?")) {
-                localStorage.removeItem("authToken"); // Remove auth token from localStorage
-                window.location.href = "users/auth"; // Redirect to login page
+                localStorage.removeItem("authToken"); 
+                window.location.href = "/users/auth"; 
             }
         });
-        
+
+        $("#cancelEditInvestment").on("click", function () {
+            $("#editModal").hide();
+        });
     </script>
 </body>
 </html>

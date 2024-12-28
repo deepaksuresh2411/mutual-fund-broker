@@ -101,7 +101,7 @@ class SignOutAPIView(AuthView):
             token = Token.objects.get(key=token_key)
             token.delete()
             return self.send_response(
-                {"message": "Logged out successfully", "is_success": True},
+                {"message": "Signed out successfully", "is_success": True},
                 status_code=status.HTTP_200_OK,
             )
         except Token.DoesNotExist:
@@ -194,7 +194,53 @@ class UserInvestmentDetailsAPIView(APIView, UtilityMixin):
         )
 
     def put(self, request, *args, **kwargs):
-        pass
+        investment_record_id = request.GET.get("investment")
+        investment = UserInvestDetails.objects.filter(
+            user=request.user, id=investment_record_id
+        ).last()
+        data = request.data
+        if investment:
+            is_updated = False
+            if data.get("units_owned"):
+                investment.units_owned = data.get("units_owned")
+                is_updated = True
+            if data.get("invested_amount"):
+                investment.amount_invested = data.get("invested_amount")
+                is_updated = True
+            if data.get("invested_date"):
+                invested_date = None
+                try:
+                    invested_date = datetime.strptime(
+                        data.get("invested_date"), "%Y-%m-%d"
+                    )
+                    is_updated = True
+                except Exception as e:
+                    return self.send_response(
+                        {
+                            "message": "invested_date format error (required format is YYYY-MM-DD)",
+                            "is_success": False,
+                        },
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                    )
+                investment.investment_date = invested_date
+            if is_updated:
+                investment.save()
+        else:
+            return Response(
+                {
+                    "message": f"Investment ({investment_record_id}) is not found",
+                    "is_success": False,
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return Response(
+            {
+                "message": f"Investment ({investment_record_id}) is updated successfully",
+                "is_success": True,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def delete(self, request, *args, **kwargs):
         investment_record_id = request.GET.get("investment")
@@ -210,7 +256,7 @@ class UserInvestmentDetailsAPIView(APIView, UtilityMixin):
                     "message": f"Investment ({investment_record_id}) is not found",
                     "is_success": False,
                 },
-                status=status.HTTP_204_NO_CONTENT,
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         return Response(
