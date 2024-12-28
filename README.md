@@ -36,8 +36,8 @@ touch .env
 ```
 DEBUG=True
 SECRET_KEY=your_secret_key_here
-RAPID_API_KEY=your_rapidapi_key_here
-ALLOWED_HOSTS=localhost,127.0.0.1
+RAPID_API_KEY=your_rapid_api_key_here
+RAPID_API_HOST=your_rapid_api_host
 ```
 
 3. Get your RapidAPI key:
