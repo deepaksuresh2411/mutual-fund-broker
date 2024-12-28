@@ -62,6 +62,31 @@ python manage.py runserver
 
 2. Access the application at `http://localhost:8000`
 
+3. Start the Mutual Fund Data Scheduler
+
+The application includes an automated scheduler that fetches the latest mutual fund scheme data hourly.
+
+#### About the Scheduler
+- Located in `mutualfundbroker/scheduler.py`
+- Uses Python's `schedule` package for MVP/development version
+- Runs the `fetch_mutual_fund` management command every hour
+- Keeps your mutual fund data up-to-date automatically
+
+#### To start the scheduler:
+1. Open a terminal and navigate to the project directory.
+2. Activate the virtual environment if you haven't already.
+3. Run the following command:
+```bash
+python scheduler.py
+```
+
+#### Note for Production Version
+The current scheduler implementation using Python's `schedule` package is intended for development and MVP purposes only. For production environments, it's recommended to implement this functionality using:
+
+- **Celery**: A distributed task queue
+- **Redis**: As a message broker and result backend
+- **Celery Beat**: For scheduling periodic tasks
+
 
 ## API Documentation & Postman Collection
 
