@@ -1,6 +1,6 @@
 # Mutual Fund Broker Application
 
-A Django-based application for managing and tracking mutual funds.
+A Python-based application for managing and tracking mutual funds.
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
