@@ -61,3 +61,9 @@ python manage.py runserver
 ```
 
 2. Access the application at `http://localhost:8000`
+
+
+## API Documentation & Postman Collection
+
+The complete API documentation is available at:
+ `https://documenter.getpostman.com/view/17816709/2sAYJ6CfTE#0c835608-39d3-4375-b051-8bb01436f3b1`
