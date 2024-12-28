@@ -450,7 +450,7 @@
         document.getElementById('logoutButton').addEventListener('click', function () {
             if (confirm("Are you sure you want to logout?")) {
                 localStorage.removeItem("authToken"); 
-                window.location.href = "users/auth"; 
+                window.location.href = "/users/auth"; 
             }
         });
 

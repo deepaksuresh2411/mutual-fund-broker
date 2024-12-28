@@ -159,7 +159,8 @@
                     document.getElementById('signin-error').innerText = error.message || 'Sign In failed!';
                 }
             } catch (err) {
-                document.getElementById('signin-error').innerText = 'Network error!';
+                console.log(err);
+                document.getElementById('signin-error').innerText = 'Something went wrong!';
             }
         });
 
