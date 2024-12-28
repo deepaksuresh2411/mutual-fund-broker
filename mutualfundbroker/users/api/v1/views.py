@@ -101,7 +101,7 @@ class SignOutAPIView(AuthView):
             token = Token.objects.get(key=token_key)
             token.delete()
             return self.send_response(
-                {"message": "Logged out successfully", "is_success": True},
+                {"message": "Signed out successfully", "is_success": True},
                 status_code=status.HTTP_200_OK,
             )
         except Token.DoesNotExist:
@@ -231,7 +231,7 @@ class UserInvestmentDetailsAPIView(APIView, UtilityMixin):
                     "message": f"Investment ({investment_record_id}) is not found",
                     "is_success": False,
                 },
-                status=status.HTTP_204_NO_CONTENT,
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         return Response(
@@ -256,7 +256,7 @@ class UserInvestmentDetailsAPIView(APIView, UtilityMixin):
                     "message": f"Investment ({investment_record_id}) is not found",
                     "is_success": False,
                 },
-                status=status.HTTP_204_NO_CONTENT,
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         return Response(

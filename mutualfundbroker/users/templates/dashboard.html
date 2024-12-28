@@ -211,6 +211,7 @@
                         <th>Invested Amount</th>
                         <th>Current Value</th>
                         <th>NAV</th>
+                        <th>Latest Investment Date</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -337,6 +338,7 @@
                                     <td>₹ ${amount_invested}</td>
                                     <td>₹ ${current_value}</td>
                                     <td>₹ ${nav}</td>
+                                    <td>${investment_date}</td>
                                     <td>
                                         <button onclick='openEditModal(${JSON.stringify(investment)})' style="margin:2px">Edit</button>
                                         <button class="delete" onclick="deleteInvestment(${id})">Delete</button>
